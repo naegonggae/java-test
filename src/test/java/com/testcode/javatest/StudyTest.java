@@ -1,6 +1,8 @@
 package com.testcode.javatest;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumingThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
@@ -10,7 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.condition.DisabledOnJre;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.JRE;
+import org.junit.jupiter.api.condition.OS;
 class StudyTest {
 
 	@Test
@@ -55,6 +63,41 @@ class StudyTest {
 			new Study(10);
 			Thread.sleep(300);
 			// 시간을 기다리기 때문에 그 시간만큼 테스트가 지연될 수 있다.
+		});
+	}
+
+	@Test
+	@DisplayName("특정환경에서 적용하는 테스트")
+	@EnabledOnOs(OS.MAC)
+	//@DisabledOnOs({OS.MAC, OS.WINDOWS}) // 전체실행했을때만 적용시켜줌 , 여러개도 선택가능
+	@EnabledOnJre(JRE.JAVA_17)
+	//@DisabledOnJre(JRE.JAVA_17) // 이거도 전체 실행했을때만 적용시킴
+	//@EnabledIfEnvironmentVariable(named = "env", matches = "local") // Environment variable [env] does not exist
+	void osTest1() {
+		// 로컬인 경우에만 다음으로 넘어가 테스트를 실행할 수 있다.
+		String env = System.getenv("local");
+		System.out.println("env = " + env);
+//		assumeTrue("LOCAL".equalsIgnoreCase(env));
+
+		assumeTrue(System.getProperty("os.name").startsWith("Mac"));
+
+		Study study = new Study(10);
+		assertTrue(study.getLimit() > 0);
+	}
+
+	@Test
+	@DisplayName("특정환경에서 적용하는 테스트2")
+	void osTest2() {
+		// 로컬인 경우에만 다음으로 넘어가 테스트를 실행할 수 있다.
+		assumingThat(System.getProperty("os.name").startsWith("Window"), () -> {
+			System.out.println("Window 사용중");
+			Study study = new Study(10);
+			assertTrue(study.getLimit() > 0);
+		});
+ 		assumingThat(System.getProperty("os.name").startsWith("Mac"), () -> {
+			System.out.println("Mac 사용중");
+			Study study = new Study(10);
+			assertTrue(study.getLimit() > 0);
 		});
 	}
 
