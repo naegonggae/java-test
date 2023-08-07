@@ -12,12 +12,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.DisabledOnJre;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -40,9 +43,11 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-@TestInstance(Lifecycle.PER_CLASS) // 클래스마다 하나의 인스턴스를 생성한다.
+//@TestInstance(Lifecycle.PER_CLASS) // 클래스마다 하나의 인스턴스를 생성한다.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class) // @TestInstance(Lifecycle.PER_CLASS)와 같이 사용하면 상태 공유하면서 순서 있는 테스트를 짤수있다.
 class StudyTest {
 
+	@Order(2)
 	@Test
 	@DisplayName("스터디 만들기")
 	public void create() throws Exception {
@@ -62,6 +67,7 @@ class StudyTest {
 		System.out.println("create");
 	}
 
+	@Order(1)
 	@Test
 	@DisplayName("에러 터트리기")
 	void error() {
