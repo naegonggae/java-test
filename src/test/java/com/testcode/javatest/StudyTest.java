@@ -4,8 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.api.Assumptions.assumingThat;
 
+import com.testcode.javatest.domain.Study;
+import com.testcode.javatest.domain.StudyStatus;
 import java.time.Duration;
-import net.bytebuddy.asm.Advice.Argument;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,17 +19,11 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.condition.DisabledOnJre;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,7 +34,6 @@ import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
 import org.junit.jupiter.params.converter.ArgumentConversionException;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.converter.SimpleArgumentConverter;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -64,11 +58,11 @@ class StudyTest {
 		// 테스트는 위에서 부터 실행됨, 중간에 실패하면 거기서 멈춤 다음거는 진행하지 않음
 		// 내부의 테스트를 모두 실행함
 		assertAll(
-				() -> assertEquals(StudyStatus.DRAFT, study.getStudyStatus(), "스터디를 처음 만들면 상태값이 DRAFT 여야 한다."),
+				() -> assertEquals(StudyStatus.DRAFT, study.getStatus(), "스터디를 처음 만들면 상태값이 DRAFT 여야 한다."),
 				// 메세지 출력을 실패했을때만 하도록 성능최적화를 하고싶다면 아래와 같이 람다식으로 해야한다.
-				() -> assertEquals(StudyStatus.DRAFT, study.getStudyStatus(), () -> "스터디를 처음 만들면 상태값이 DRAFT 여야 한다."),
+				() -> assertEquals(StudyStatus.DRAFT, study.getStatus(), () -> "스터디를 처음 만들면 상태값이 DRAFT 여야 한다."),
 				// 실패하면 메세지 출력할수있게 하기 가능
-				() -> assertTrue(study.getLimit() > 0, "스터디 최대 참석인원은 0보다 커야한다.")
+				() -> assertTrue(study.getLimitCount() > 0, "스터디 최대 참석인원은 0보다 커야한다.")
 		);
 
 		System.out.println("create");
@@ -82,7 +76,7 @@ class StudyTest {
 				IllegalArgumentException.class, () -> new Study(-10));
 		// 오류 메세지 확인하기
 		String message = exception.getMessage();
-		assertEquals("limit 는 0보다 커야 한다.", message);
+		assertEquals("limit은 0보다 커야 한다.", message);
 	}
 
 	@Test
@@ -118,7 +112,7 @@ class StudyTest {
 		assumeTrue(System.getProperty("os.name").startsWith("Mac"));
 
 		Study study = new Study(10);
-		assertTrue(study.getLimit() > 0);
+		assertTrue(study.getLimitCount() > 0);
 	}
 
 	@Test
@@ -128,12 +122,12 @@ class StudyTest {
 		assumingThat(System.getProperty("os.name").startsWith("Window"), () -> {
 			System.out.println("Window 사용중");
 			Study study = new Study(10);
-			assertTrue(study.getLimit() > 0);
+			assertTrue(study.getLimitCount() > 0);
 		});
  		assumingThat(System.getProperty("os.name").startsWith("Mac"), () -> {
 			System.out.println("Mac 사용중");
 			Study study = new Study(10);
-			assertTrue(study.getLimit() > 0);
+			assertTrue(study.getLimitCount() > 0);
 		});
 	}
 
@@ -143,7 +137,7 @@ class StudyTest {
 	void fast() {
 		System.out.println("fast 테스트");
 		Study study = new Study(10);
-		assertTrue(study.getLimit() > 0);
+		assertTrue(study.getLimitCount() > 0);
 	}
 
 	@Test
@@ -152,7 +146,7 @@ class StudyTest {
 	void slow() {
 		System.out.println("slow 테스트");
 		Study study = new Study(10);
-		assertTrue(study.getLimit() > 0);
+		assertTrue(study.getLimitCount() > 0);
 	}
 
 	@FastAnnotation // tag 로 fast 가 설정되어있다.
@@ -160,7 +154,7 @@ class StudyTest {
 	void fastAnnotation() {
 		System.out.println("fast 테스트");
 		Study study = new Study(10);
-		assertTrue(study.getLimit() > 0);
+		assertTrue(study.getLimitCount() > 0);
 	}
 
 	@DisplayName("반복 테스트")
@@ -196,7 +190,7 @@ class StudyTest {
 	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
 	@ValueSource(ints = {10, 20, 40})
 	void parameterTest3(@ConvertWith(StudyConverter.class) Study study) {
-		System.out.println(study.getLimit());
+		System.out.println(study.getLimitCount());
 	}
 	static class StudyConverter extends SimpleArgumentConverter {
 		@Override
