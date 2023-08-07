@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnJre;
@@ -20,6 +22,9 @@ import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 class StudyTest {
 
 	@Test
@@ -126,6 +131,25 @@ class StudyTest {
 		System.out.println("fast 테스트");
 		Study study = new Study(10);
 		assertTrue(study.getLimit() > 0);
+	}
+
+	@DisplayName("반복 테스트")
+//	@RepeatedTest(10) //repetition 1 of 10
+	@RepeatedTest(value = 10, name = "{displayName}, {currentRepetition}/{totalRepetitions}") // 반복 테스트, 1/10
+	void repeatedTest(RepetitionInfo repetitionInfo) {
+		System.out.println("test"+" / "+repetitionInfo.getCurrentRepetition()+
+				" / "+repetitionInfo.getTotalRepetitions());
+	}
+
+	@DisplayName("반복하기")
+	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
+	@ValueSource(strings = {"날씨가", "많이", "추워지고", "있네요"})
+	void parameterTest(String message) {
+		System.out.println(message);
+		// 글자 하나하나 들어올때마다 한개의 테스트로 친다.
+		//before each
+		//날씨가
+		//after each
 	}
 
 	@Test
