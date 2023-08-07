@@ -16,6 +16,8 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.condition.DisabledOnJre;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -38,7 +40,7 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
+@TestInstance(Lifecycle.PER_CLASS) // 클래스마다 하나의 인스턴스를 생성한다.
 class StudyTest {
 
 	@Test
@@ -219,6 +221,20 @@ class StudyTest {
 			Study study = new Study(accessor.getInteger(0), accessor.getString(1));
 			return study;
 		}
+	}
+
+	int value = 1;
+	@Test
+	@DisplayName("value 값이 공유 되는가1")
+	void value1() {
+		System.out.println(value++); // 1
+		System.out.println(this); // 메서드마다 다른 주소가 나온다. / 다른 인스턴스다. -> 테스트간 의존성을 없애기 위해서
+	}
+	@Test
+	@DisplayName("value 값이 공유 되는가2")
+	void value2() {
+		System.out.println(value++); // 1
+		System.out.println(this);
 	}
 
 	@Test
