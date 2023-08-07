@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.api.Assumptions.assumingThat;
 
 import java.time.Duration;
+import net.bytebuddy.asm.Advice.Argument;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +23,20 @@ import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.aggregator.AggregateWith;
+import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
+import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
+import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
+import org.junit.jupiter.params.converter.ArgumentConversionException;
+import org.junit.jupiter.params.converter.ConvertWith;
+import org.junit.jupiter.params.converter.SimpleArgumentConverter;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class StudyTest {
@@ -144,12 +158,67 @@ class StudyTest {
 	@DisplayName("반복하기")
 	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
 	@ValueSource(strings = {"날씨가", "많이", "추워지고", "있네요"})
+	@EmptySource // 빈칸을 소스로 갖는 테스트 추가
+	@NullSource // null 소스로 갖는 테스트 추가
+	@NullAndEmptySource // 위에 두개 합친거 //세개 다쓰면 중복 적용은 안된다.
 	void parameterTest(String message) {
 		System.out.println(message);
 		// 글자 하나하나 들어올때마다 한개의 테스트로 친다.
 		//before each
 		//날씨가
 		//after each
+	}
+
+	@DisplayName("반복하기2") // 숫자 파라미터 사용하기
+	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
+	@ValueSource(ints = {10, 20, 40})
+	void parameterTest2(Integer integer) {
+		System.out.println(integer);
+	}
+
+	@DisplayName("반복하기3") // 객체 파라미터 사용하기 , 하나의 파라미터만 받기
+	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
+	@ValueSource(ints = {10, 20, 40})
+	void parameterTest3(@ConvertWith(StudyConverter.class) Study study) {
+		System.out.println(study.getLimit());
+	}
+	static class StudyConverter extends SimpleArgumentConverter {
+		@Override
+		protected Object convert(Object source, Class<?> targetType)
+				throws ArgumentConversionException {
+			assertEquals(Study.class, targetType, "Can only convert to Study");
+			return new Study(Integer.parseInt(source.toString()));
+		}
+	}
+
+	@DisplayName("반복하기4") // 객체 파라미터 사용하기, 두개이상 파라미터 받기
+	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
+	@CsvSource({"10, 자바 스터디", "20, 스프링"})
+	void parameterTest4(Integer limit, String name) {
+		System.out.println(new Study(limit, name));
+	}
+
+	@DisplayName("반복하기5") // 객체 파라미터 사용하기, 두개이상 파라미터 받기
+	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
+	@CsvSource({"10, 자바 스터디", "20, 스프링"})
+	void parameterTest5(ArgumentsAccessor argumentsAccessor) { //하나로 받고 싶다면 이렇게 하셈
+		Study study = new Study(argumentsAccessor.getInteger(0), argumentsAccessor.getString(1));
+		System.out.println(study);
+	}
+
+	@DisplayName("반복하기6") // 객체 파라미터 사용하기, 두개이상 파라미터 받기
+	@ParameterizedTest(name = "{index} {displayName} message={0}") // 1 반복하기 message=날씨가
+	@CsvSource({"10, 자바 스터디", "20, 스프링"})
+	void parameterTest6(@AggregateWith(StudyAggregator.class) Study study) { //하나로 받고 싶다면 이렇게 하셈
+		System.out.println(study);
+	}
+	static class StudyAggregator implements ArgumentsAggregator {
+		@Override
+		public Object aggregateArguments(ArgumentsAccessor accessor, ParameterContext context)
+				throws ArgumentsAggregationException {
+			Study study = new Study(accessor.getInteger(0), accessor.getString(1));
+			return study;
+		}
 	}
 
 	@Test
