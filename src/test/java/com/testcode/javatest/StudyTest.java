@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnJre;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -99,6 +100,24 @@ class StudyTest {
 			Study study = new Study(10);
 			assertTrue(study.getLimit() > 0);
 		});
+	}
+
+	@Test
+	@DisplayName("fast 테스트")
+	@Tag("fast") // gradle 설정으로 안됨, 환경변수 설정으로만 됨
+	void fast() {
+		System.out.println("fast 테스트");
+		Study study = new Study(10);
+		assertTrue(study.getLimit() > 0);
+	}
+
+	@Test
+	@DisplayName("slow 테스트")
+	@Tag("slow") // gradle 설정으로 안됨, 환경변수 설정으로만 됨
+	void slow() {
+		System.out.println("slow 테스트");
+		Study study = new Study(10);
+		assertTrue(study.getLimit() > 0);
 	}
 
 	@Test

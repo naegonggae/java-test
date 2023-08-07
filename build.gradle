@@ -26,8 +26,19 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.0'
+
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+//test {
+//    useJUnitPlatform {
+//        includeTags 'fast'
+//    }
+//    // 또는 excludeTags를 사용하여 특정 태그를 제외할 수도 있습니다.
+//    // excludeTags 'exclude_tag'
+//}
