@@ -120,6 +120,14 @@ class StudyTest {
 		assertTrue(study.getLimit() > 0);
 	}
 
+	@FastAnnotation // tag 로 fast 가 설정되어있다.
+	@DisplayName("fast 테스트")
+	void fastAnnotation() {
+		System.out.println("fast 테스트");
+		Study study = new Study(10);
+		assertTrue(study.getLimit() > 0);
+	}
+
 	@Test
 	@Disabled // test 에서 제외시킴
 	void create2() {
