@@ -28,7 +28,9 @@ import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
@@ -43,9 +45,14 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+//@ExtendWith(FindSlowTestExtension.class) // 어노테이션으로 선언하는 방법
 //@TestInstance(Lifecycle.PER_CLASS) // 클래스마다 하나의 인스턴스를 생성한다.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class) // @TestInstance(Lifecycle.PER_CLASS)와 같이 사용하면 상태 공유하면서 순서 있는 테스트를 짤수있다.
 class StudyTest {
+
+	// 인스턴스를 만드는데 복잡한 로직이 필요하다면 이렇게 필드에 적용시킬수 있음, 여기에 빌더를 사용하던가
+	@RegisterExtension
+	static FindSlowTestExtension findSlowTestExtension = new FindSlowTestExtension(1000L);
 
 	@Order(2)
 	@Test
@@ -79,6 +86,7 @@ class StudyTest {
 	}
 
 	@Test
+	//@SlowAnnotation
 	@DisplayName("시간내에 테스트가 완료되는가") // threadLocal 를 사용하는 코드가 {}안에 있다면 예상치못한 결과가 나올수있음 주의 ex 트랜잭션
 	void timeOut() {
 		// assertTimeoutPreemptively 설정한 시간 초과하면 거기서 멈춰버림
@@ -87,9 +95,9 @@ class StudyTest {
 //			Thread.sleep(300);
 //			// 시간을 기다리기 때문에 그 시간만큼 테스트가 지연될 수 있다.
 //		});
-		assertTimeout(Duration.ofMillis(500), () -> {
+		assertTimeout(Duration.ofMillis(1100), () -> {
 			new Study(10);
-			Thread.sleep(300);
+			Thread.sleep(1050);
 			// 시간을 기다리기 때문에 그 시간만큼 테스트가 지연될 수 있다.
 		});
 	}
