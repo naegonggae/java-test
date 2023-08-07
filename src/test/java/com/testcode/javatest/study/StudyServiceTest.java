@@ -84,4 +84,25 @@ class StudyServiceTest {
 		assertEquals(Optional.empty(), memberService.findById(3L));
 	}
 
+	@Test
+	@DisplayName("studyService 과제")
+	void studyService2() {
+
+		Study study = new Study(10, "테스트");
+		Member member = new Member();
+		member.setId(1L);
+		member.setEmail("ddd@ddd.com");
+
+		when(memberService.findById(1L)).thenReturn(Optional.of(member));
+		when(studyRepository.save(study)).thenReturn(study);
+//		when(studyRepository.save(new Study(10, "test"))).thenReturn(study); // 이렇게 하니까 다깨짐 new 를 하지말자
+
+		StudyService studyService = new StudyService(memberService, studyRepository);
+		Study findStudy = studyService.createNewStudy(member.getId(), study);
+
+		assertNotNull(findStudy.getOwnerId());
+		assertEquals(member.getId(), findStudy.getOwnerId());
+
+	}
+
 }
