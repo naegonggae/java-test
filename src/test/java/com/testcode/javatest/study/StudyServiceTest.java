@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import com.testcode.javatest.domain.Member;
 import com.testcode.javatest.domain.Study;
+import com.testcode.javatest.domain.StudyStatus;
 import com.testcode.javatest.member.MemberService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -126,6 +127,28 @@ class StudyServiceTest {
 		inOrder.verify(memberService).notify(findStudy);
 //		inOrder.verify(memberService).notify(member);
 		verifyNoMoreInteractions(memberService);
+
+	}
+
+	@Test
+	@DisplayName("openStudy test")
+	void openStudy() {
+
+		//given
+		StudyService studyService = new StudyService(memberService, studyRepository);
+
+		Study study = new Study(10, "test");
+//		given(studyRepository.save(study)).willReturn(study);
+		when(studyRepository.save(study)).thenReturn(study);
+
+		//when
+		studyService.openStudy(study);
+
+		//then
+		assertEquals(StudyStatus.OPENED, study.getStatus());
+		assertNotNull(study.getOpenedDateTime());
+//		verify(memberService, times(1)).notify(study);
+		then(memberService).should(times(1)).notify(study);
 
 	}
 
