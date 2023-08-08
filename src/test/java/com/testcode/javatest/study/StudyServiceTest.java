@@ -1,6 +1,7 @@
 package com.testcode.javatest.study;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.*;
 
 import com.testcode.javatest.domain.Member;
@@ -10,8 +11,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 // 2. 방법 어노테이션들로 mock 객체 만들기
 @ExtendWith(MockitoExtension.class)
@@ -89,24 +92,34 @@ class StudyServiceTest {
 	@DisplayName("studyService 과제")
 	void studyService2() {
 
+		// given
 		Study study = new Study(10, "테스트");
 		Member member = new Member();
 		member.setId(1L);
 		member.setEmail("ddd@ddd.com");
 
-		when(memberService.findById(1L)).thenReturn(Optional.of(member));
+//		when(memberService.findById(1L)).thenReturn(Optional.of(member));
 		when(studyRepository.save(study)).thenReturn(study);
 //		when(studyRepository.save(new Study(10, "test"))).thenReturn(study); // 이렇게 하니까 다깨짐 new 를 하지말자
+		given(memberService.findById(1L)).willReturn(Optional.of(member));
+
 
 		StudyService studyService = new StudyService(memberService, studyRepository);
+
+		// when
 		Study findStudy = studyService.createNewStudy(member.getId(), study);
 
+		// then
 		assertNotNull(findStudy.getOwnerId());
 		assertEquals(member.getId(), findStudy.getOwnerId());
 
-		verify(memberService, times(1)).notify(findStudy);
+//		verify(memberService, times(1)).notify(findStudy);
+		then(memberService).should(times(1)).notify(findStudy);
+
 //		verify(memberService, times(1)).notify(member);
-		verify(memberService, never()).validate(any());
+//		verify(memberService, never()).validate(any());
+		then(memberService).should(never()).validate(any());
+
 
 		// 메서드가 애래의 표기대로 호출되는가
 		InOrder inOrder = inOrder(memberService);
