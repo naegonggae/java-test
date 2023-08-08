@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 // 2. 방법 어노테이션들로 mock 객체 만들기
@@ -102,6 +103,16 @@ class StudyServiceTest {
 
 		assertNotNull(findStudy.getOwnerId());
 		assertEquals(member.getId(), findStudy.getOwnerId());
+
+		verify(memberService, times(1)).notify(findStudy);
+//		verify(memberService, times(1)).notify(member);
+		verify(memberService, never()).validate(any());
+
+		// 메서드가 애래의 표기대로 호출되는가
+		InOrder inOrder = inOrder(memberService);
+		inOrder.verify(memberService).notify(findStudy);
+//		inOrder.verify(memberService).notify(member);
+		verifyNoMoreInteractions(memberService);
 
 	}
 
