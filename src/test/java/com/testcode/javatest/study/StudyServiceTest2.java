@@ -12,12 +12,15 @@ import com.testcode.javatest.domain.Study;
 import com.testcode.javatest.domain.StudyStatus;
 import com.testcode.javatest.member.MemberService;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +28,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -33,8 +39,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Testcontainers
+@Slf4j
 //@Transactional 이거 있으면 롤백해서 db에 저장안됨
 class StudyServiceTest2 {
+
+//	Logger LOGGER = LoggerFactory.getLogger(StudyServiceTest2.class); // 어노테이션으로 대체
 
 	@Mock
 	MemberService memberService;
@@ -45,12 +54,29 @@ class StudyServiceTest2 {
 	// test 마다 컨테이너를 만듬 그래서 하나로 공유해서 사용하려고 static 을 붙이자
 	// 주소는 테스트 yml 설정해주고 환경변수에 넣어줌
 	// 느린게 단점
+//	@Container
+//	static MySQLContainer mySQLContainer = new MySQLContainer("mysql") // 여기 이미지 파일 넣어야할듯
+//			.withDatabaseName("studyTest"); // 이름 설정가능
+
+	// 모듈에 없는 db 라도 이렇게 도커이미지만 설정해주면 사용가능하다 , 포트나 이름도 설정가능
 	@Container
-	static MySQLContainer mySQLContainer = new MySQLContainer() // 여기 이미지 파일 넣어야할듯
-			.withDatabaseName("studyTest"); // 이름 설정가능
+	static GenericContainer mySQLContainer2 = new GenericContainer("mysql") // 여기 이미지 파일 넣어야할듯
+			.withExposedPorts(3306)
+			.withEnv("likelion-db", "studyTest") // 이름 설정가능
+			.waitingFor(Wait.forListeningPort());
+
+
+	@BeforeAll
+	static void beforeAll() {
+		Slf4jLogConsumer slf4jLogConsumer = new Slf4jLogConsumer(log);
+		mySQLContainer2.followOutput(slf4jLogConsumer);
+	}
 
 	@BeforeEach
 	void beforeEach() {
+		System.out.println("===============");
+		System.out.println(mySQLContainer2.getMappedPort(3306)); // host 랑 어떤 포트로 연결되어있는가 확인
+		//System.out.println(mySQLContainer2.getLogs());
 		studyRepository.deleteAll();
 		// 컨테이너를 테스트마다 실행하면 시간이 너무너무 많이 걸림
 		// 그래서 static 으로 하나만 띄우는거고
@@ -72,6 +98,9 @@ class StudyServiceTest2 {
 	@Test
 	void createNewStudy() {
 
+		System.out.println("mysql url = "+ mySQLContainer2.getExposedPorts());
+		System.out.println("mysql url = "+ mySQLContainer2.getDockerImageName());
+		System.out.println("mysql url = "+ mySQLContainer2.getContainerName());
 		// Given
 		StudyService studyService = new StudyService(memberService, studyRepository);
 		assertNotNull(studyService);
