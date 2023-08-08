@@ -26,7 +26,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
@@ -40,6 +46,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 @Testcontainers
 @Slf4j
+@ContextConfiguration(initializers = StudyServiceTest2.ContainerPropertyInitializer.class)
 //@Transactional 이거 있으면 롤백해서 db에 저장안됨
 class StudyServiceTest2 {
 
@@ -50,6 +57,11 @@ class StudyServiceTest2 {
 
 	@Autowired
 	StudyRepository studyRepository;
+
+//	@Autowired
+//	Environment environment;
+
+	@Value("${container.port}") int port;
 
 	// test 마다 컨테이너를 만듬 그래서 하나로 공유해서 사용하려고 static 을 붙이자
 	// 주소는 테스트 yml 설정해주고 환경변수에 넣어줌
@@ -77,6 +89,8 @@ class StudyServiceTest2 {
 		System.out.println("===============");
 		System.out.println(mySQLContainer2.getMappedPort(3306)); // host 랑 어떤 포트로 연결되어있는가 확인
 		//System.out.println(mySQLContainer2.getLogs());
+//		System.out.println(environment.getProperty("container.port"));
+		System.out.println(port);
 		studyRepository.deleteAll();
 		// 컨테이너를 테스트마다 실행하면 시간이 너무너무 많이 걸림
 		// 그래서 static 으로 하나만 띄우는거고
@@ -139,4 +153,11 @@ class StudyServiceTest2 {
 		then(memberService).should().notify(study);
 	}
 
+	static class ContainerPropertyInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+		@Override
+		public void initialize(ConfigurableApplicationContext context) {
+			TestPropertyValues.of("container.port=" + mySQLContainer2.getMappedPort(3306))
+					.applyTo(context.getEnvironment());
+		}
+	}
 }
